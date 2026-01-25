@@ -23,6 +23,7 @@ class IdentifierGenerator:
             for _ in range(random.randint(self.min_len, self.max_len))
         )
 
+
 class Obfuscator(ast.NodeTransformer):
     def __init__(self, strings=True, numbers=True):
         self.names = {}
@@ -31,8 +32,7 @@ class Obfuscator(ast.NodeTransformer):
         self.numbers = numbers
         self.gen = IdentifierGenerator()
 
-    # ---- Names ----
-    def rename(self, name: str) -> str:
+    def rename(self, name):
         if name in self.builtins:
             return name
         if name not in self.names:
@@ -40,10 +40,8 @@ class Obfuscator(ast.NodeTransformer):
         return self.names[name]
 
     def visit_Name(self, node):
-        return ast.copy_location(
-            ast.Name(id=self.rename(node.id), ctx=node.ctx),
-            node
-        )
+        node.id = self.rename(node.id)
+        return node
 
     def visit_arg(self, node):
         node.arg = self.rename(node.arg)
@@ -55,13 +53,7 @@ class Obfuscator(ast.NodeTransformer):
         return node
 
     def visit_Constant(self, node):
-
-        # strings
-        if (
-            self.strings
-            and isinstance(node.value, str)
-            and len(node.value) > 1
-        ):
+        if self.strings and isinstance(node.value, str) and len(node.value) > 1:
             cut = random.randint(1, len(node.value) - 1)
             return ast.BinOp(
                 left=ast.Constant(node.value[:cut]),
@@ -69,12 +61,7 @@ class Obfuscator(ast.NodeTransformer):
                 op=ast.Add()
             )
 
-        # numbers
-        if (
-            self.numbers
-            and isinstance(node.value, (int, float))
-            and not isinstance(node.value, bool)
-        ):
+        if self.numbers and isinstance(node.value, (int, float)) and not isinstance(node.value, bool):
             offset = random.randint(1, 10)
             return ast.BinOp(
                 left=ast.Constant(node.value + offset),
@@ -84,6 +71,7 @@ class Obfuscator(ast.NodeTransformer):
 
         return node
 
+
 class ObfuscationEngine:
     def __init__(self, strings=True, numbers=True):
         self.strings = strings
@@ -91,9 +79,6 @@ class ObfuscationEngine:
 
     def obfuscate(self, source: str) -> str:
         tree = ast.parse(source)
-        tree = Obfuscator(
-            strings=self.strings,
-            numbers=self.numbers
-        ).visit(tree)
+        tree = Obfuscator(self.strings, self.numbers).visit(tree)
         ast.fix_missing_locations(tree)
         return ast.unparse(tree)
