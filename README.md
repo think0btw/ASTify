@@ -23,3 +23,8 @@ git clone https://github.com/think0btw/ASTify.git
 cd ASTify
 pip install requirements.txt
 python3 main.py
+
+"""
+git clone https://github.com/think0btw/ASTify.git
+cd ASTify
+"""
