@@ -17,11 +17,20 @@
 It transforms Python code internally instead of using regex or text replacement.
 
 
-## 🚀 Usage
+## 🚀 Setup
 
 ```bash
 git clone https://github.com/think0btw/ASTify.git
 cd ASTify
-pip install requirements.txt
+python -m pip install -r requirements.txt
 python3 main.py
 ```
+## Usage
+ >Run ASTify:
+ > python main.py
+> Then:
+> Enter the path to a .py file
+> Choose the output file name
+> ASTify generates the obfuscated script
+
+
