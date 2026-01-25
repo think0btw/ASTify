@@ -17,9 +17,5 @@
 It transforms Python code internally instead of using regex or text replacement.
 
 
-## 🚀 Usage/Screen
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/d53d7131-b825-425d-b6a3-f4d19c6eb003" width="50">
-
-</p>
+## 🚀 Usage
 
