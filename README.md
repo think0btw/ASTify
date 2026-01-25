@@ -1,11 +1,12 @@
+<div align="center">
+
 # ASTify 🧬
 
-ASTify is a simple Python obfuscator and compressor. 
-
-
 ![Python](https://img.shields.io/badge/Python-3.9%2B-blue?logo=python)
-![AST](https://img.shields.io/badge/AST-powered-purple)
-![License](https://img.shields.io/badge/license-BSD-3-lightgrey)
+![AST](https://img.shields.io/badge/Based%20on-AST-purple)
+![License](https://img.shields.io/badge/License-BSD--3--Clause-lightgrey)
+
+</div>
 
 <img width="436" height="240" alt="main" src="https://github.com/user-attachments/assets/2d3fd141-f560-4148-8c4c-c2dae08017b1" />
 
