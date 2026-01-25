@@ -19,12 +19,9 @@ It transforms Python code internally instead of using regex or text replacement.
 
 ## 🚀 Usage
 
+```bash
 git clone https://github.com/think0btw/ASTify.git
 cd ASTify
 pip install requirements.txt
 python3 main.py
-
-"""
-git clone https://github.com/think0btw/ASTify.git
-cd ASTify
-"""
+```
