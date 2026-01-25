@@ -1,10 +1,11 @@
 import os
 from colorama import Fore, Style, init
-
+from AST.transform import ObfuscationEngine
 init()
 
 def clear():    
     os.system('cls' if os.name == 'nt' else 'clear')
+
 
 def color(text):
     result = ""
@@ -43,6 +44,8 @@ banner = color(r"""
 
 
 def enter():
+    engine = ObfuscationEngine()
+
     while True:
         prompt = (
             Fore.LIGHTMAGENTA_EX + "┌─[" +
@@ -58,11 +61,23 @@ def enter():
 
         path = input(prompt).strip().strip('"').strip("'")
 
-        if path.lower().endswith(".py") and os.path.isfile(path):
-            print(Fore.GREEN + "File accepted")
-        else:
+        if not (path.lower().endswith(".py") and os.path.isfile(path)):
             print(Fore.RED + "Invalid Python file")
-    
+            continue
+
+        print(Fore.GREEN + "File accepted")
+
+        with open(path, "r", encoding="utf-8") as f:
+            source = f.read()
+
+        obfuscated = engine.obfuscate(source)
+
+        out = path.replace(".py", "_obf.py")
+        with open(out, "w", encoding="utf-8") as f:
+            f.write(obfuscated)
+
+        print(Fore.GREEN + f"Saved → {out}")
+        
 def main():
     clear()
     print(banner)
