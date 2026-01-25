@@ -12,61 +12,66 @@ import string
 -- By think0btw --
 
 """
-def generate_identifier(min_len=4, max_len=12):
-    return "_" + "".join(
-        random.choice(string.ascii_letters)
-        for _ in range(random.randint(min_len, max_len))
-    )
+class IdentifierGenerator:
+    def __init__(self, min_len=4, max_len=12):
+        self.min_len = min_len
+        self.max_len = max_len
 
+    def generate(self):
+        return "_" + "".join(
+            random.choice(string.ascii_letters)
+            for _ in range(random.randint(self.min_len, self.max_len))
+        )
 
-class NameObfuscator(ast.NodeTransformer):
-    def __init__(self, obfuscate_strings=True, obfuscate_numbers=True):
-        self.name_map = {}
+class Obfuscator(ast.NodeTransformer):
+    def __init__(self, strings=True, numbers=True):
+        self.names = {}
         self.builtins = set(dir(__builtins__))
-        self.obfuscate_strings = obfuscate_strings
-        self.obfuscate_numbers = obfuscate_numbers
+        self.strings = strings
+        self.numbers = numbers
+        self.gen = IdentifierGenerator()
 
-    def map_name(self, name: str) -> str:
+    # ---- Names ----
+    def rename(self, name: str) -> str:
         if name in self.builtins:
             return name
-        if name not in self.name_map:
-            self.name_map[name] = generate_identifier()
-        return self.name_map[name]
+        if name not in self.names:
+            self.names[name] = self.gen.generate()
+        return self.names[name]
 
     def visit_Name(self, node):
         return ast.copy_location(
-            ast.Name(id=self.map_name(node.id), ctx=node.ctx),
+            ast.Name(id=self.rename(node.id), ctx=node.ctx),
             node
         )
 
-    def visit_FunctionDef(self, node):
-        node.name = self.map_name(node.name)
-        node.args = self.visit(node.args)
-        node.body = [self.visit(n) for n in node.body]
+    def visit_arg(self, node):
+        node.arg = self.rename(node.arg)
         return node
 
-    def visit_arg(self, node):
-        node.arg = self.map_name(node.arg)
+    def visit_FunctionDef(self, node):
+        node.name = self.rename(node.name)
+        self.generic_visit(node)
         return node
 
     def visit_Constant(self, node):
-        
-        # ---- STRING ----
+
+        # strings
         if (
-            self.obfuscate_strings
+            self.strings
             and isinstance(node.value, str)
             and len(node.value) > 1
         ):
-            i = random.randint(1, len(node.value) - 1)
+            cut = random.randint(1, len(node.value) - 1)
             return ast.BinOp(
-                left=ast.Constant(node.value[:i]),
-                right=ast.Constant(node.value[i:]),
+                left=ast.Constant(node.value[:cut]),
+                right=ast.Constant(node.value[cut:]),
                 op=ast.Add()
             )
 
-        # ---- NUMBER ----
+        # numbers
         if (
-            self.obfuscate_numbers
+            self.numbers
             and isinstance(node.value, (int, float))
             and not isinstance(node.value, bool)
         ):
@@ -79,13 +84,16 @@ class NameObfuscator(ast.NodeTransformer):
 
         return node
 
+class ObfuscationEngine:
+    def __init__(self, strings=True, numbers=True):
+        self.strings = strings
+        self.numbers = numbers
 
-def obfuscate_source(source_code: str, strings=True, numbers=True) -> str:
-    tree = ast.parse(source_code)
-    transformer = NameObfuscator(
-        obfuscate_strings=strings,
-        obfuscate_numbers=numbers
-    )
-    tree = transformer.visit(tree)
-    ast.fix_missing_locations(tree)
-    return ast.unparse(tree)
+    def obfuscate(self, source: str) -> str:
+        tree = ast.parse(source)
+        tree = Obfuscator(
+            strings=self.strings,
+            numbers=self.numbers
+        ).visit(tree)
+        ast.fix_missing_locations(tree)
+        return ast.unparse(tree)
