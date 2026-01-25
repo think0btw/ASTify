@@ -1,6 +1,7 @@
 <div align="center">
 
 # ASTify 🧬
+<img width="1352" height="714" alt="test$" src="https://github.com/user-attachments/assets/a11e328b-cd9f-40b2-ad80-808b1e48c3b3" />
 
 ![Python](https://img.shields.io/badge/Python-3.9%2B-blue?logo=python)
 ![AST](https://img.shields.io/badge/Based%20on-AST-purple)
