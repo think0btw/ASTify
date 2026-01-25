@@ -51,8 +51,8 @@ def enter():
             Fore.LIGHTMAGENTA_EX + "┌─[" +
             Fore.WHITE + "ASTify" +
             Fore.LIGHTMAGENTA_EX + "]─" +
-            Fore.LIGHTMAGENTA_EX + "(" + 
-            Fore.WHITE + "~/Main" +   
+            Fore.LIGHTMAGENTA_EX + "(" +
+            Fore.WHITE + "~/Main" +
             Fore.LIGHTMAGENTA_EX + ")" + "\n" +
             Fore.LIGHTMAGENTA_EX + "└─" +
             Fore.WHITE + "$ " +
@@ -60,29 +60,32 @@ def enter():
         )
 
         path = input(prompt).strip().strip('"').strip("'")
-
         if not (path.lower().endswith(".py") and os.path.isfile(path)):
             print(Fore.RED + "Invalid Python file")
             continue
-
         print(Fore.GREEN + "File accepted")
-
+        
         with open(path, "r", encoding="utf-8") as f:
             source = f.read()
 
         obfuscated = engine.obfuscate(source)
 
-        out = path.replace(".py", "_obf.py")
-        with open(out, "w", encoding="utf-8") as f:
+        out_name = input(
+            Fore.LIGHTMAGENTA_EX + "Output file name ➜ " + Fore.WHITE
+        ).strip()
+        
+        if not out_name:
+            out_name = path.replace(".py", "_obf.py")
+        if not out_name.lower().endswith(".py"):
+            out_name += ".py"
+
+        with open(out_name, "w", encoding="utf-8") as f:
             f.write(obfuscated)
 
-        print(Fore.GREEN + f"Saved → {out}")
-        
-def main():
+        print(Fore.GREEN + f"Saved → {out_name}")
+
+if __name__ == "__main__":
     clear()
     print(banner)
     enter()
-
-if __name__ == "__main__":
-    main()
     
