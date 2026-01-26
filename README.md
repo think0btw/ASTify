@@ -10,6 +10,7 @@
 </div>
 
 ## 📌 Presentation
+<img width="1355" height="709" alt="try" src="https://github.com/user-attachments/assets/291548f2-b9d5-46d1-9949-a0cba3e92830" />
 
 <img src="https://github.com/user-attachments/assets/2d3fd141-f560-4148-8c4c-c2dae08017b1" width="30%">
 
