@@ -14,8 +14,9 @@ import builtins
 -- By think0btw --
 
 """
+
 class IdentifierGenerator:
-    def __init__(self, min_len=4, max_len=12):
+    def __init__(self, min_len=10, max_len=18):
         self.min_len = min_len
         self.max_len = max_len
 
@@ -25,16 +26,20 @@ class IdentifierGenerator:
             for _ in range(random.randint(self.min_len, self.max_len))
         )
 
+# ---------- obfuscator ----------
 
-class Obfuscator(ast.NodeTransformer):
-    def __init__(self, strings=True, numbers=True):
+class MultiPassObfuscator(ast.NodeTransformer):
+    def __init__(self, strings=True, numbers=True, passes=3):
         self.names = {}
         self.strings = strings
         self.numbers = numbers
-        self.gen = IdentifierGenerator()
-
+        self.generators = IdentifierGenerator()
         self.builtins = set(dir(builtins))
         self.imports = set()
+        self.in_class = False
+        self.passes = passes
+
+    # ---------- imports ----------
 
     def visit_Import(self, node):
         for alias in node.names:
@@ -46,77 +51,94 @@ class Obfuscator(ast.NodeTransformer):
             self.imports.add(alias.asname or alias.name)
         return node
 
-def rename(self, name):
-    if name.startswith("__") and name.endswith("__"):
-        return name
-    if name in self.builtins:
-        return name
-    if name in self.imports:
-        return name
-    if name not in self.names:
-        self.names[name] = self.gen.generate()
-    return self.names[name]
+    # ---------- rename ----------
 
+    def rename(self, name: str) -> str:
+        if (
+            name in self.builtins
+            or name in self.imports
+            or name.startswith("__")
+        ):
+            return name
 
-    def visit_Name(self, node):
-        if isinstance(node.ctx, ast.Load):
-            if node.id in self.builtins or node.id in self.imports:
-                return node
+        if name not in self.names:
+            self.names[name] = self.generators.generate()
 
-        node.id = self.rename(node.id)
+        return self.names[name]
+
+    # ---------- structure ----------
+
+    def visit_Module(self, node):
+        for _ in range(self.passes):
+            self.generic_visit(node)
+        return node
+
+    def visit_ClassDef(self, node):
+        node.name = self.rename(node.name)
+        self.in_class = True
+        self.generic_visit(node)
+        self.in_class = False
+        return node
+
+    def visit_FunctionDef(self, node):
+        # ❗ SAFE : pas renommer les méthodes
+        if not self.in_class:
+            node.name = self.rename(node.name)
+        self.generic_visit(node)
         return node
 
     def visit_arg(self, node):
         node.arg = self.rename(node.arg)
         return node
 
-    def visit_FunctionDef(self, node):
-        node.name = self.rename(node.name)
+    # ---------- names ----------
+
+    def visit_Name(self, node):
+        node.id = self.rename(node.id)
+        return node
+
+    def visit_Attribute(self, node):
+        # ❗ SAFE : ne jamais renommer les attributs
         self.generic_visit(node)
         return node
-    
-    def visit_ClassDef(self, node):
-      node.name = self.rename(node.name)
-      self.generic_visit(node)
-      return node
 
-    def visit_Call(self, node):
-        if isinstance(node.func, ast.Name):
-            if node.func.id in self.builtins or node.func.id in self.imports:
-                return self.generic_visit(node)
-
-        self.generic_visit(node)
-        return node
+    # ---------- constants ----------
 
     def visit_Constant(self, node):
+        # strings
         if self.strings and isinstance(node.value, str) and len(node.value) > 1:
-            cut = random.randint(1, len(node.value) - 1)
-            new_node = ast.BinOp(
-                left=ast.Constant(node.value[:cut]),
-                right=ast.Constant(node.value[cut:]),
-                op=ast.Add()
+            i = random.randint(1, len(node.value) - 1)
+            return ast.BinOp(
+                left=ast.Constant(node.value[:i]),
+                op=ast.Add(),
+                right=ast.Constant(node.value[i:])
             )
-            return ast.copy_location(new_node, node)
 
-        if self.numbers and isinstance(node.value, (int, float)) and not isinstance(node.value, bool):
-            offset = random.randint(1, 10)
-            new_node = ast.BinOp(
-                left=ast.Constant(node.value + offset),
-                right=ast.Constant(offset),
-                op=ast.Sub()
+        # numbers
+        if self.numbers and isinstance(node.value, int) and not isinstance(node.value, bool):
+            r = random.randint(10, 50)
+            return ast.BinOp(
+                left=ast.Constant(node.value + r),
+                op=ast.Sub(),
+                right=ast.Constant(r)
             )
-            return ast.copy_location(new_node, node)
 
         return node
 
+# ---------- engine (UNCHANGED API) ----------
 
 class ObfuscationEngine:
-    def __init__(self, strings=True, numbers=True):
+    def __init__(self, strings=True, numbers=True, passes=2):
         self.strings = strings
         self.numbers = numbers
+        self.passes = passes
 
     def obfuscate(self, source: str) -> str:
         tree = ast.parse(source)
-        tree = Obfuscator(self.strings, self.numbers).visit(tree)
-        ast.fix_missing_locations(tree)
-        return ast.unparse(tree)
+        obf = MultiPassObfuscator(
+            self.strings,
+            self.numbers,
+            self.passes
+        ).visit(tree)
+        ast.fix_missing_locations(obf)
+        return ast.unparse(obf)
