@@ -1,7 +1,7 @@
 <div align="center">
 
 # ASTify 🧬
-<img width="1352" height="714" alt="test$" src="https://github.com/user-attachments/assets/a11e328b-cd9f-40b2-ad80-808b1e48c3b3" />
+<img width="1355" height="709" alt="try" src="https://github.com/user-attachments/assets/291548f2-b9d5-46d1-9949-a0cba3e92830" />
 
 ![Python](https://img.shields.io/badge/Python-3.9%2B-blue?logo=python)
 ![AST](https://img.shields.io/badge/Based%20on-AST-purple)
@@ -10,7 +10,6 @@
 </div>
 
 ## 📌 Presentation
-<img width="1355" height="709" alt="try" src="https://github.com/user-attachments/assets/291548f2-b9d5-46d1-9949-a0cba3e92830" />
 
 <img src="https://github.com/user-attachments/assets/2d3fd141-f560-4148-8c4c-c2dae08017b1" width="30%">
 
