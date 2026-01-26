@@ -25,9 +25,6 @@ class IdentifierGenerator:
             random.choice(string.ascii_letters)
             for _ in range(random.randint(self.min_len, self.max_len))
         )
-
-# ---------- obfuscator ----------
-
 class MultiPassObfuscator(ast.NodeTransformer):
     def __init__(self, strings=True, numbers=True, passes=3):
         self.names = {}
@@ -39,8 +36,6 @@ class MultiPassObfuscator(ast.NodeTransformer):
         self.in_class = False
         self.passes = passes
 
-    # ---------- imports ----------
-
     def visit_Import(self, node):
         for alias in node.names:
             self.imports.add(alias.asname or alias.name)
@@ -50,8 +45,6 @@ class MultiPassObfuscator(ast.NodeTransformer):
         for alias in node.names:
             self.imports.add(alias.asname or alias.name)
         return node
-
-    # ---------- rename ----------
 
     def rename(self, name: str) -> str:
         if (
@@ -66,8 +59,6 @@ class MultiPassObfuscator(ast.NodeTransformer):
 
         return self.names[name]
 
-    # ---------- structure ----------
-
     def visit_Module(self, node):
         for _ in range(self.passes):
             self.generic_visit(node)
@@ -81,7 +72,7 @@ class MultiPassObfuscator(ast.NodeTransformer):
         return node
 
     def visit_FunctionDef(self, node):
-        # ❗ SAFE : pas renommer les méthodes
+     
         if not self.in_class:
             node.name = self.rename(node.name)
         self.generic_visit(node)
@@ -91,21 +82,16 @@ class MultiPassObfuscator(ast.NodeTransformer):
         node.arg = self.rename(node.arg)
         return node
 
-    # ---------- names ----------
-
     def visit_Name(self, node):
         node.id = self.rename(node.id)
         return node
 
     def visit_Attribute(self, node):
-        # ❗ SAFE : ne jamais renommer les attributs
         self.generic_visit(node)
         return node
 
-    # ---------- constants ----------
-
     def visit_Constant(self, node):
-        # strings
+
         if self.strings and isinstance(node.value, str) and len(node.value) > 1:
             i = random.randint(1, len(node.value) - 1)
             return ast.BinOp(
@@ -114,7 +100,6 @@ class MultiPassObfuscator(ast.NodeTransformer):
                 right=ast.Constant(node.value[i:])
             )
 
-        # numbers
         if self.numbers and isinstance(node.value, int) and not isinstance(node.value, bool):
             r = random.randint(10, 50)
             return ast.BinOp(
@@ -124,8 +109,6 @@ class MultiPassObfuscator(ast.NodeTransformer):
             )
 
         return node
-
-# ---------- engine (UNCHANGED API) ----------
 
 class ObfuscationEngine:
     def __init__(self, strings=True, numbers=True, passes=2):
