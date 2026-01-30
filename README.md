@@ -33,9 +33,7 @@ python3 main.py
 > Then:
 >
 > Enter the path to a .py file
->
 > Choose the output file name
->
 > ASTify generates the obfuscated script
 
 
