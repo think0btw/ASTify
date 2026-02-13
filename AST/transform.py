@@ -16,7 +16,6 @@ import builtins
 
 
 class IdentifierGenerator:
-    """Générateur optimisé d'identifiants avec cache"""
     
     def __init__(self, min_len=8, max_len=12):
         self.min_len = min_len
@@ -25,7 +24,6 @@ class IdentifierGenerator:
         self._counter = 0
     
     def generate(self):
-        """Génère un identifiant unique de manière efficace"""
         self._counter += 1
         
         if self._counter < 100:
@@ -43,7 +41,6 @@ class IdentifierGenerator:
 
 
 class MultiPassObfuscator(ast.NodeTransformer):
-    """Obfuscateur AST optimisé pour les gros fichiers"""
     
     def __init__(self, strings=True, numbers=True, passes=1):
         self.names = {}
@@ -63,19 +60,16 @@ class MultiPassObfuscator(ast.NodeTransformer):
         self._max_nodes = 1000000  # seceurity limit
     
     def visit_Import(self, node):
-        """Enregistre les imports sans transformation"""
         for alias in node.names:
             self.imports.add(alias.asname or alias.name)
         return node
     
     def visit_ImportFrom(self, node):
-        """Enregistre les imports from sans transformation"""
         for alias in node.names:
             self.imports.add(alias.asname or alias.name)
         return node
     
     def rename(self, name: str) -> str:
-        """Renomme un identifiant de manière efficace avec cache"""
         if (
             name in self.builtins
             or name in self.imports
@@ -90,7 +84,6 @@ class MultiPassObfuscator(ast.NodeTransformer):
         return self.names[name]
     
     def visit_Module(self, node):
-        """Visite le module avec limitation de passes"""
         self.generic_visit(node)
         
         if self.passes > 1 and self._total_nodes < 50000:
@@ -99,7 +92,6 @@ class MultiPassObfuscator(ast.NodeTransformer):
         return node
     
     def visit_ClassDef(self, node):
-        """Transforme une définition de classe"""
         node.name = self.rename(node.name)
         old_in_class = self.in_class
         self.in_class = True
@@ -108,7 +100,6 @@ class MultiPassObfuscator(ast.NodeTransformer):
         return node
     
     def visit_FunctionDef(self, node):
-        """Transforme une définition de fonction"""
         if not self.in_class or not node.name.startswith("__"):
             if not self.in_class:
                 node.name = self.rename(node.name)
@@ -117,22 +108,19 @@ class MultiPassObfuscator(ast.NodeTransformer):
         return node
     
     def visit_arg(self, node):
-        """Transforme un argument de fonction"""
         node.arg = self.rename(node.arg)
         return node
     
     def visit_Name(self, node):
-        """Transforme un nom de variable"""
+
         node.id = self.rename(node.id)
         return node
     
     def visit_Attribute(self, node):
-        """Visite un attribut sans le renommer"""
         self.generic_visit(node)
         return node
     
     def visit_Constant(self, node):
-        """Transforme les constantes de manière optimisée"""
         self._total_nodes += 1
         
         if self._total_nodes > self._max_nodes:
@@ -170,7 +158,6 @@ class MultiPassObfuscator(ast.NodeTransformer):
         return node
     
     def _split_string_optimized(self, s: str):
-        """Split une string de manière optimisée"""
 
         max_splits = min(self._string_split_limit, len(s) // 10)
         
@@ -199,7 +186,6 @@ class MultiPassObfuscator(ast.NodeTransformer):
 
 
 class ObfuscationEngine:
-    """Moteur d'obfuscation optimisé"""
     
     def __init__(self, strings=True, numbers=True, passes=1):
         self.strings = strings
@@ -207,7 +193,7 @@ class ObfuscationEngine:
         self.passes = passes
     
     def obfuscate(self, source: str) -> str:
-        """Obfusque le code source"""
+   
         try:
             tree = ast.parse(source)
             
@@ -221,7 +207,7 @@ class ObfuscationEngine:
                 passes = self.passes
                 strings = self.strings
             
-            # Applique l'obfuscation
+  
             obfuscator = MultiPassObfuscator(
                 strings=strings,
                 numbers=self.numbers,
@@ -249,7 +235,6 @@ class ObfuscationEngine:
             raise
     
     def _minimal_obfuscate(self, source: str) -> str:
-        """Obfuscation minimale en cas d'erreur"""
         tree = ast.parse(source)
 
         obfuscator = MultiPassObfuscator(
